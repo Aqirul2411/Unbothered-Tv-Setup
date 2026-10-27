@@ -2,13 +2,13 @@
 
 | Fail | Saiz | Nota |
 |---|---|---|
-| `GlassTV-v8-dim35-overlay.apk` | 340,637 bytes | Build terakhir (Dim 35% melalui overlay) |
+| `GlassTV-v9-weather-heavy.apk` | 341,037 bytes | Build terakhir (hujan lebat + `weather_preview`) |
 
 ## Pasang
 
 ```bash
 adb connect <ip-tv>:5555
-adb install -r GlassTV-v8-dim35-overlay.apk
+adb install -r GlassTV-v9-weather-heavy.apk
 adb shell appops set com.gathin.tvhome SYSTEM_ALERT_WINDOW allow
 adb shell am start -n com.gathin.tvhome/.MainActivity
 ```

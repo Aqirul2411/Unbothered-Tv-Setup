@@ -3,7 +3,22 @@
 Only the APK names and sizes are kept: the builds themselves stay on the owner's PC.
 Sizes are the release APK (`assembleRelease`, under the 400 KB the project's CI allows).
 
-## v8 — dim 35 % over every app · 340,637 bytes · current
+## v9 — hujan lebat dibezakan · 341,037 bytes · current
+
+* Rain used to have one look: codes 61–67 and 80–82 all drew the same 80 drops, so **heavy
+  rain looked exactly like light rain**. Heavy (65, 67, 82) is now its own scene: 128 drops,
+  longer (21–37 dp), faster (620–930 dp/s), thicker (2.25 dp) than rain's 80.
+* Storm raised to 160 drops (was 104) so it still leads; `MAX` in `WeatherFxView` went
+  110 → 170 to hold them. `reduced_motion` still halves everything (heavy → 64, storm → 80).
+* New config key **`weather_preview`** (`drizzle|rain|heavy|storm|snow`): forces one scene
+  whatever the forecast says, so a theme can be checked — and screenshots taken — without
+  waiting for the sky. Unknown values are ignored; `""` means the real forecast.
+* Verified on the TV by logcat: `rain: 40 drops`, `heavy rain: 64 drops`,
+  `thunderstorm: 80 drops` (reduced motion on).
+* Screenshots added: hujan biasa, hujan lebat, ribut + kilat, and three wallpapers after
+  D-pad moves only.
+
+## v8 — dim 35 % over every app · 340,637 bytes
 
 * The dim sheet went from 25 % to **35 % black**; still its own `APPLICATION_OVERLAY`
   window, so other apps dim too.
@@ -66,7 +81,8 @@ GlassTV-v4-clean-dissolve.apk             338,793
 GlassTV-v5-dissolve-fixed.apk             339,049
 GlassTV-v6-dim25-system.apk               340,601   (dim did not work)
 GlassTV-v7-dim25-overlay.apk              340,633
-GlassTV-v8-dim35-overlay.apk              340,637   (current)
+GlassTV-v8-dim35-overlay.apk              340,637
+GlassTV-v9-weather-heavy.apk              341,037   (current)
 ```
 
 Plus the pre-change safety net: full package list, disabled list, `getprop`, `settings list

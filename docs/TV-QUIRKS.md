@@ -102,3 +102,28 @@ cmd package query-activities --brief -a android.intent.action.MAIN \
 
 On Xiaomi the factory test app can take it. Disable the extras (for user 0) only after
 confirming Home still lands on the new launcher.
+
+## Capturing screenshots for a README
+
+Things that cost time on this set:
+
+- **The Dim sheet is in the picture.** With Dim on, the brightest pixel is `166` instead of
+  `255`, so every shot looks grey. Turn Dim off first — tapping the sun pill by its
+  `uiautomator` bounds is the reliable way (`resource-id` `btnDim`, here `[1493,142][1577,226]`),
+  then put it back on when done.
+- **`screencap` takes ~3 s**, so timing anything is done in a burst, not one frame at a time.
+- **Lightning lasts 300 ms every 4–12 s.** Run a loop on the TV itself, not over adb:
+
+  ```text
+  adb push burst.sh /sdcard/burst.sh
+  adb shell sh /sdcard/burst.sh        # 60 frames back to back
+  ```
+
+  then pick the frame with the highest mean luminance: a flash lifts the whole frame by
+  ~22 (alpha 52 of white). Compare each frame with its neighbour — a uniform rise across
+  most pixels is the flash; a shift in one area only is a wallpaper change.
+- **Which scene is on screen is in the log**, not guessed from pixels:
+  `adb logcat -d -s TvHome.WeatherFx` prints `heavy rain: 64 drops`.
+- **Tapping instead of navigating**: `adb shell uiautomator dump /sdcard/ui.xml` gives every
+  node's `bounds`, which is safer than pressing D-pad until something focuses (and pressing
+  OK on the wrong pill opens Settings).

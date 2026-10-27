@@ -35,7 +35,7 @@ APK siap ada dalam folder [`apk/`](apk/):
 
 ```bash
 adb connect <ip-tv>:5555
-adb install -r apk/GlassTV-v8-dim35-overlay.apk
+adb install -r apk/GlassTV-v9-weather-heavy.apk
 adb shell appops set com.gathin.tvhome SYSTEM_ALERT_WINDOW allow   # untuk butang Dim
 adb shell am start -n com.gathin.tvhome/.MainActivity
 ```
@@ -59,6 +59,28 @@ tools\theme.ps1 themes\mitv-mooq0                        # Windows
 |---|---|
 | ![Home](screenshots/home.jpg) | ![Dim 35%](screenshots/home-dim35.jpg) |
 
+### Hujan atas wallpaper
+
+Tiga aras, ikut kod cuaca WMO semasa — bukan gambar tetap, titis betul-betul bergerak
+(satu loop 30 fps, berhenti bila app lain di depan).
+
+| Hujan biasa (61–63, 80–81) | Hujan lebat (65, 82) | Ribut + kilat (95+) |
+|---|---|---|
+| ![Hujan](screenshots/weather-rain.jpg) | ![Hujan lebat](screenshots/weather-heavy.jpg) | ![Ribut](screenshots/weather-storm.jpg) |
+
+Hujan lebat = titis lebih banyak, lebih panjang dan lebih laju. Ribut tambah **kilat dua
+kali** (alpha 52 → 34) setiap 4–12 s; gambar di atas tertangkap ketika kilat menyala.
+
+### Wallpaper bertukar
+
+Fokus bergerak → wallpaper dissolve ke gambar seterusnya (500 ms dengan
+`reduced_motion`, 900 ms tanpa). Tiga gambar di bawah diambil dengan menekan D-pad
+sahaja, tiada app dibuka:
+
+| 1 | 2 | 3 |
+|---|---|---|
+| ![Wallpaper 1](screenshots/wallpaper-1.jpg) | ![Wallpaper 2](screenshots/wallpaper-2.jpg) | ![Wallpaper 3](screenshots/wallpaper-3.jpg) |
+
 ---
 
 ## Ciri-ciri
@@ -68,7 +90,7 @@ tools\theme.ps1 themes\mitv-mooq0                        # Windows
 | 🕌 | **Waktu Solat** | JAKIM e-Solat, 5 waktu berputar setiap 4.2 s, waktu semasa disorot emas, cache offline |
 | 🔊 | **Azan** | Banner + bunyi dipotong ikut `azan_seconds`, notifikasi pada channel `azan` |
 | 🌤 | **Cuaca** | Open-Meteo: sekarang / +3j / +6j, refresh setiap 30 min |
-| 🌧 | **Hujan atas wallpaper** | Gerimis, hujan, ribut + kilat, salji — ikut kod cuaca WMO |
+| 🌧 | **Hujan atas wallpaper** | Gerimis, hujan, **hujan lebat**, ribut + kilat, salji — ikut kod cuaca WMO |
 | 📅 | **Jadual** | iCal, kotak kekal dengan `TIADA JADUAL` bila kosong |
 | 🖼 | **Wallpaper dissolve** | Tukar bila fokus bergerak, fade 500/900 ms, ada queue |
 | ☀️ | **Dim 35%** | Overlay atas **semua app**, bukan Home sahaja |
@@ -107,15 +129,26 @@ Bila masuk waktu: banner naik (`Azan <waktu>` + jam + zone), bunyi azan dimainka
 
 ### 4. Hujan atas wallpaper
 
-| Kod WMO | Babak | Titis |
-|---|---|---|
-| 51–57 | gerimis | 40 |
-| 61–67, 80–82 | hujan | 80 |
-| 95+ | ribut (hujan + kilat) | 104 |
-| 71–77, 85–86 | salji | 54 |
+| Kod WMO | Babak | Titis | Rupa |
+|---|---|---|---|
+| 51–57 | gerimis | 40 | pendek, perlahan, hampir lurus |
+| 61–63, 66, 80–81 | hujan | 80 | sederhana, senget sedikit |
+| 65, 67, 82 | **hujan lebat** | 128 | panjang, laju, lebih tebal |
+| 95–99 | ribut | 160 | paling lebat + kilat |
+| 71–77, 85–86 | salji | 54 | bulat, turun perlahan |
 
 Titis ialah garis pendek senget, satu loop **30 fps**, hanya dilukis bila Home di depan.
-`"reduced_motion": true` mengurangkan separuh bilangan titis.
+`"reduced_motion": true` mengurangkan separuh bilangan titis (TV 1 GB RAM).
+
+Nak tengok rupa satu babak tanpa tunggu cuaca betul-betul jadi begitu (untuk screenshot
+atau uji theme):
+
+```json
+"weather_preview": "heavy"
+```
+
+Nilai: `"drizzle"`, `"rain"`, `"heavy"`, `"storm"`, `"snow"`. Biarkan kosong/tak letak
+untuk ikut cuaca sebenar; nilai lain diabaikan.
 
 ### 5. Jadual (kalendar)
 
@@ -190,6 +223,7 @@ tukar `"<lat>,<lon>"` kepada lokasi anda.
 | `azan_seconds` | `15` | Saat bunyi azan dimainkan (`0` = penuh) |
 | `weather_location` | `"<lat>,<lon>"` | Lokasi cuaca — **jangan commit** nilai sebenar |
 | `weather_effect` | `true` | Hujan/salji atas wallpaper |
+| `weather_preview` | `"heavy"` | Paksa satu babak cuaca (uji/screenshot); kosong = ikut cuaca sebenar |
 | `columns` | `5` | App sebaris |
 | `rows_below_dock` | `0` | Baris bawah dock |
 | `dock_carousel` | `true` | Dock berulang |
@@ -225,7 +259,8 @@ Setiap build dan sebab perubahan: [`CHANGELOG.md`](CHANGELOG.md).
 
 | Versi | Saiz | Perubahan |
 |---|---|---|
-| v8 | 340,637 | Dim 35% (overlay) — **semasa** |
+| v9 | 341,037 | Hujan lebat jadi babak sendiri + `weather_preview` — **semasa** |
+| v8 | 340,637 | Dim 35% (overlay) |
 | v7 | 340,633 | Dim guna overlay, bukan kecerahan |
 | v6 | 340,601 | Cubaan Dim guna `screen_brightness` (tak jalan) |
 | v5 | 339,049 | Dissolve guna `Handler`, tambah queue |
@@ -245,6 +280,7 @@ Repo ini **tiada**:
 - screenshot yang memaparkan event kalendar atau senarai app
 
 Screenshot di sini diambil ketika kalendar kosong — yang keluar hanya `TIADA JADUAL`.
+Wallpaper dalam screenshot ialah gambar peribadi pemilik TV, dimasukkan dengan izinnya.
 Sebelum tambah screenshot sendiri: `adb shell screencap -p /sdcard/home.png`, tarik keluar,
 dan periksa dulu.
 
