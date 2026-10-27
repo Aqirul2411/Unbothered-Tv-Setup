@@ -1,229 +1,260 @@
-# Glass TV on a Xiaomi Mi TV — the Malaysian setup
+# Glass TV — Malaysian Edition
 
-A home-screen replacement for an **Android TV** set, tuned for a Malaysian living room:
-prayer times that turn through the five daily prayers, an azan reminder at each one,
-weather for the hour now plus the next six, rain falling over the wallpaper when it
-rains outside, a calendar box that never disappears, and wallpapers that dissolve into
-the next one as you move around the screen.
+![Android TV](https://img.shields.io/badge/Android%20TV-10-3DDC84?logo=android&logoColor=white)
+![Device](https://img.shields.io/badge/Xiaomi-MiTV--MOOQ0-FF6900?logo=xiaomi&logoColor=white)
+![APK](https://img.shields.io/badge/APK-341%20KB-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-This folder is the write-up of that setup: what was done, why, and what to watch out
-for on this exact TV. It contains **no private data** — no account, no API key, no
-calendar address, no home coordinates, no device address.
+Home screen replacement untuk **Android TV**, dibina untuk ruang tamu Malaysia:
+waktu solat yang berputar, peringatan azan, cuaca +3j/+6j, hujan atas wallpaper bila
+luar hujan, kotak jadual yang tak hilang, dan wallpaper yang bertukar dengan
+animasi dissolve.
 
-| | |
+![Home screen](screenshots/home.jpg)
+
+<p align="center"><sub>Kotak solat · cuaca · jadual · dock apps · wallpaper penuh</sub></p>
+
+---
+
+## Isi kandungan
+
+- [Pemasangan pantas](#pemasangan-pantas)
+- [Screenshot](#screenshot)
+- [Ciri-ciri](#ciri-ciri)
+- [Konfigurasi](#konfigurasi)
+- [Nota teknikal TV](#nota-teknikal-tv)
+- [Sejarah build](#sejarah-build)
+- [Privasi](#privasi)
+- [Kredit & lisenn](#kredit--lisenn)
+
+---
+
+## Pemasangan pantas
+
+APK siap ada dalam folder [`apk/`](apk/):
+
+```bash
+adb connect <ip-tv>:5555
+adb install -r apk/GlassTV-v8-dim35-overlay.apk
+adb shell appops set com.gathin.tvhome SYSTEM_ALERT_WINDOW allow   # untuk butang Dim
+adb shell am start -n com.gathin.tvhome/.MainActivity
+```
+
+Kemudian push theme (waktu solat, lokasi cuaca, wallpaper):
+
+```bash
+TV_HOST=<ip-tv> tools/theme.sh themes/mitv-mooq0        # macOS / Linux
+tools\theme.ps1 themes\mitv-mooq0                        # Windows
+```
+
+> APK ini **release build** dan ditandatangani dengan **debug key** — sesuai untuk
+> sideload pada TV sendiri, bukan untuk Play Store. Theme tidak disertakan dalam APK:
+> koordinat, alamat kalendar dan wallpaper di-push berasingan ke TV sahaja.
+
+---
+
+## Screenshot
+
+| Biasa | Butang Dim ON (35%) |
 |---|---|
-| TV | Xiaomi Mi TV `MiTV-MOOQ0` |
-| OS | Android TV 10 (API 29) |
-| Launcher | Glass TV `com.gathin.tvhome` (this project), release APK ≈ 340 KB |
-| Screen | 1920 × 1080 |
-
-The launcher itself is [Glass TV / Clean Your TV](https://github.com/Gathin23/cleanyourtv)
-by Gathin (MIT). This folder only describes one TV's installation of it.
+| ![Home](screenshots/home.jpg) | ![Dim 35%](screenshots/home-dim35.jpg) |
 
 ---
 
-## What is on the screen
+## Ciri-ciri
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│  10:42   Isnin 27 Oktober         [ Inputs ][ ☀ ][ Wi-Fi ][⚙]│
-│                                                              │
-│  ┌─ Waktu Solat ────────┐   ┌─ Cuaca ──────────────────────┐ │
-│  │ Zohor        13:12   │   │   Sekarang  +3j    +6j       │ │
-│  └──────────────────────┘   │   29°       30°    27°       │ │
-│                             └──────────────────────────────┘ │
-│  ┌─ Jadual ──────────────────────────────┐                   │
-│  │ 8:30  Mesyuarat                        │                  │
-│  └────────────────────────────────────────┘                  │
-│                                                              │
-│        (wallpaper: a place, rain over it when it rains)      │
-│                                                              │
-│   ▢▢▢▢▢  ◄ dock: apps, focused tile lifts                    │
-└──────────────────────────────────────────────────────────────┘
-```
+| | Ciri | Ringkas |
+|---|---|---|
+| 🕌 | **Waktu Solat** | JAKIM e-Solat, 5 waktu berputar setiap 4.2 s, waktu semasa disorot emas, cache offline |
+| 🔊 | **Azan** | Banner + bunyi dipotong ikut `azan_seconds`, notifikasi pada channel `azan` |
+| 🌤 | **Cuaca** | Open-Meteo: sekarang / +3j / +6j, refresh setiap 30 min |
+| 🌧 | **Hujan atas wallpaper** | Gerimis, hujan, ribut + kilat, salji — ikut kod cuaca WMO |
+| 📅 | **Jadual** | iCal, kotak kekal dengan `TIADA JADUAL` bila kosong |
+| 🖼 | **Wallpaper dissolve** | Tukar bila fokus bergerak, fade 500/900 ms, ada queue |
+| ☀️ | **Dim 35%** | Overlay atas **semua app**, bukan Home sahaja |
+| 🧹 | **Self-clean cache** | Setiap 15 hari, automatik |
+| 🧩 | **Dock & susunan** | 5 kolum, dock carousel, apps tersembunyi tanpa uninstall |
+| 🔓 | **Debloat boleh undo** | `pm disable-user` sahaja, `tools/restore.sh` balikkan semula |
 
----
+### 1. Waktu Solat — lima waktu berputar
 
-## Features, one by one
+- Waktu dari **JAKIM e-Solat** (`e-solat.gov.my`), zone `PNG01`, diambil sekali sehari
+  dan di-cache — kotak tetap tunjuk waktu hari ini walaupun TV offline.
+- Kotak **berputar melalui 5 waktu setiap 4.2 s** — Subuh, Zohor, Asar, Maghrib, Isyak —
+  jadi semua waktu boleh dibaca tanpa tekan apa-apa.
+- Waktu yang **sedang berjalan** dipaparkan warna emas dengan rim menyala.
+- Caption `Waktu Solat` bila data hari ini; nama zone bila dari cache.
+- Tarikh Hijri di sebelah jam.
 
-### 1. Waktu Solat — five prayers, turning
+### 2. Azan
 
-* Times come from **JAKIM e-Solat** (`e-solat.gov.my`), zone `PNG01` for this TV,
-  fetched once a day and cached on the TV, so the box still shows today's times with
-  no internet.
-* The box **turns through the five prayers every 4.2 s** — Subuh, Zohor, Asar, Maghrib,
-  Isyak — then starts again, so all five are readable without pressing anything.
-* The prayer whose time is **running now** is shown warm (gold) with a lit rim;
-  the others are plain white.
-* Caption says `Waktu Solat` when the times are today's, and names the zone when they
-  are from the cache (TV has been off since yesterday).
-* Hijri date beside the clock.
-* Config: `"prayer_zone": "PNG01"`. Leave empty to hide the box.
-
-### 2. Azan reminder
-
-When a prayer's time arrives:
-
-* A **banner** slides in: `Azan <prayer>` and the time and zone,
-* the **azan recording plays for a fixed number of seconds** and is then cut, so the
-  TV does not keep singing for four minutes,
-* a notification is posted in the `azan` channel (so it also appears if something else
-  is on screen).
-
-Config:
+Bila masuk waktu: banner naik (`Azan <waktu>` + jam + zone), bunyi azan dimainkan
+**sekadar beberapa saat** kemudian dipotong, dan notifikasi keluar di channel `azan`.
 
 ```json
 "azan": true,
 "azan_seconds": 15
 ```
 
-`azan_seconds` is how much of the recording to play — `5` gives a short reminder,
-`15` the default here, `0` plays the whole azan.
+`azan_seconds`: `5` = peringatan pendek, `15` = nilai di TV ini, `0` = main penuh.
 
-### 3. Cuaca — weather for now, +3 h, +6 h
+### 3. Cuaca
 
-* **Open-Meteo**, free and keyless: `temperature_2m` + `weather_code`, hourly, two days.
-* Three columns: the **hour now**, **three hours on**, **six hours on**; rewritten when
-  the clock reaches a new hour, so it always starts at "now" and never turns by itself.
-* Icons follow Google Weather's shapes (sun, partly cloudy, cloud, rain, snow, storm).
-* Fetched every 30 minutes on a background thread; a failure waits 15 minutes and keeps
-  the cached hours on screen (offline-friendly).
-* Config: `"weather_location": "<lat>,<lon>"` — **your** coordinates, kept on the TV only.
+- **Open-Meteo** — percuma, tanpa API key: `temperature_2m` + `weather_code`, setiap jam, 2 hari.
+- Tiga lajur: **jam sekarang**, **+3 jam**, **+6 jam**; ditulis semula bila masuk jam baru.
+- Ikon ikut bentuk Google Weather.
+- Fetch setiap 30 minit di thread latar; gagal → cuba lagi 15 minit, kekalkan cache.
 
-### 4. Rain over the wallpaper
+### 4. Hujan atas wallpaper
 
-When the WMO code for the hour says it is raining, the picture outside gets weather:
-
-| Code | Scene | Drops |
+| Kod WMO | Babak | Titis |
 |---|---|---|
-| 51–57 | drizzle | 40 |
-| 61–67, 80–82 | rain | 80 |
-| 95+ | thunderstorm (rain + lightning) | 104 |
-| 71–77, 85–86 | snow | 54 |
+| 51–57 | gerimis | 40 |
+| 61–67, 80–82 | hujan | 80 |
+| 95+ | ribut (hujan + kilat) | 104 |
+| 71–77, 85–86 | salji | 54 |
 
-* Drops are short slanted lines moved by one loop at **30 fps**, drawn only while Home is
-  in front — nothing runs behind another app.
-* `"reduced_motion": true` halves the count (and makes every animation short), for a
-  weaker GPU. That is what this TV uses.
-* Config: `"weather_effect": true`.
+Titis ialah garis pendek senget, satu loop **30 fps**, hanya dilukis bila Home di depan.
+`"reduced_motion": true` mengurangkan separuh bilangan titis.
 
-### 5. Jadual — calendar
+### 5. Jadual (kalendar)
 
-* Reads **iCalendar feeds** (a Google Calendar "secret iCal address", or any `.ics`
-  link) configured **on the TV**, merges them, and shows the next few events with time
-  and title.
-* When there is nothing: the box stays, caption shows **`TIADA JADUAL`** — it never
-  disappears or leaves a hole in the layout.
-* 🔒 The feed address is a private secret. It lives only in the TV's own settings and in
-  **no** file in this folder.
+- Baca **feed iCalendar** (alamat "secret iCal" Google Calendar, atau mana-mana `.ics`),
+  gabung, papar beberapa event seterusnya dengan masa dan tajuk.
+- Bila kosong: kotak **kekal**, caption jadi **`TIADA JADUAL`** — layout tak lompat.
+- 🔒 Alamat feed ialah rahsia peribadi: ia hanya ada dalam tetapan TV, **tiada** dalam repo.
 
-### 6. Wallpapers that dissolve
+### 6. Wallpaper dissolve
 
-* Two sources: the built-in **Places** pictures (Bing's weekly home-page photo of
-  somewhere in the world, with its name and country — the launcher's only download) and
-  **your own pictures** in the app's folder
+- Dua sumber: gambar **Places** (foto halaman utama Bing setiap minggu, dengan nama tempat
+  dan negara) dan **gambar sendiri** dalam
   `/sdcard/Android/data/com.gathin.tvhome/files/wallpapers/`.
-* The picture **changes when you move focus** between apps, and the change is a real
-  dissolve: the next picture is revealed behind and the old one fades out over 500 ms
-  (`reduced_motion`) or 900 ms — no instant jump.
-* Asking for a change while one is still dissolving **queues** it, so fast D-pad presses
-  still end on a new picture instead of being dropped.
-* `"places": false` keeps everything offline and uses only your own pictures.
-* Config: `"wallpaper_seconds": 15` (time between changes), `"wallpaper_minutes"`,
-  `"wallpapers": [...]`, `"wallpaper": true`.
+- Bertukar **bila fokus bergerak** antara app, dengan **dissolve sebenar** — gambar baru
+  muncul di belakang, gambar lama pudar 500 ms (`reduced_motion`) atau 900 ms.
+- Permintaan tukar semasa dissolve sedang berjalan akan **diqueue**, jadi tekan remote
+  laju-laju pun tetap berakhir dengan gambar baru.
+- `"places": false` = sepenuhnya offline, guna gambar sendiri sahaja.
 
-### 7. Dim — 35 %, over every app
+### 7. Dim 35% — atas semua app
 
-A sun pill beside **Inputs** dims the whole screen **35 %** with a translucent sheet in
-its own window, so it covers **YouTube and everything else**, not just Home.
+Butang matahari di sebelah **Input**, gelapkan seluruh skrin **35%** dengan lapisan
+dalam tetingkap sendiri (`APPLICATION_OVERLAY`), jadi ia meliputi **YouTube dan app lain**,
+bukan Home sahaja.
 
-* 35 % was chosen after 25 % felt like nothing: white `255` → `166` on screen.
-* The window is `APPLICATION_OVERLAY`, takes no focus and no touches — the remote works
-  straight through it.
-* The state is remembered across restarts.
-* This TV **ignores Android's brightness setting** (`screen_brightness` changes, the panel
-  does not), which is why the sheet is used — see `docs/TV-QUIRKS.md`.
+- 35% dipilih selepas 25% tak nampak beza: putih `255` → `166`.
+- Tetingkap tak ambil fokus dan tak ambil sentuhan — remote terus berfungsi.
+- Keadaan diingati selepas restart.
+- TV ini **abaikan tetapan kecerahan Android** — sebab itu lapisan digunakan
+  (lihat [`docs/TV-QUIRKS.md`](docs/TV-QUIRKS.md)).
 
-### 8. Self-cleaning caches
+### 8. Self-clean cache
 
-Glass TV clears other apps' caches **every 15 days** on its own (`TvHome.Clean` in
-logcat). It needs a one-time "Allow USB debugging?" confirmation on the TV, and network
-debugging left on; turn debugging off and only the cleaning stops.
+Glass TV bersihkan cache app lain **setiap 15 hari** secara automatik (`TvHome.Clean`
+dalam logcat). Perlu pengesahan "Allow USB debugging?" sekali di TV dan network debugging
+kekal hidup; matikan debugging → hanya pembersihan berhenti, lain-lain tak berubah.
 
-### 9. Home, dock and order
+### 9. Dock & susunan
 
-* `"columns": 5` — five apps per row, `"rows_below_dock": 0` — no rows under the dock.
-* `"dock_carousel": true` — the dock is one long bar that wraps around.
-* `"dock_apps"` puts four apps in the dock; anything beyond the dock's width continues as
-  the first grid rows, in the same order.
-* `"hidden_apps"` hides packages from the grid without uninstalling them.
-* The owner can still move apps on the TV (hold OK → Move); their order wins afterwards.
+- `"columns": 5`, `"rows_below_dock": 0` — 5 app sebaris, tiada baris bawah dock.
+- `"dock_carousel": true` — dock satu bar panjang yang berulang.
+- `"dock_apps"` isi dock; lebih daripada muatan dock akan jadi baris grid pertama.
+- `"hidden_apps"` sembunyikan pakej tanpa uninstall.
+- Pemilik masih boleh susun app di TV (tahan OK → Move); susunan mereka mengatasi config.
 
-### 10. Debloat, reversibly
+### 10. Debloat, boleh undo
 
-The stock Xiaomi/MediaTek packages are **disabled**, never uninstalled:
+Pakej stok Xiaomi/MediaTek **dimatikan**, bukan di-uninstall:
 
 ```text
-com.xiaomi.mitv.mediaexplorer   (stock file browser)
-com.xiaomi.mitv.smartshare      (Miracast — disabled only after confirming it is unused)
-com.mitv.tvhome.mitvplus        (PatchWall extras)
-com.mitv.gallery                (stock gallery)
-com.mediatek.wwtv.tvcenter      (factory TV app / test menu)
+com.xiaomi.mitv.mediaexplorer   (file browser stok)
+com.xiaomi.mitv.smartshare      (Miracast — dimatikan selepas disahkan tak digunakan)
+com.mitv.tvhome.mitvplus        (tambahan PatchWall)
+com.mitv.gallery                (galeri stok)
+com.mediatek.wwtv.tvcenter      (app factory / menu ujian)
 ```
 
-Every change was written to a log and `tools/restore.sh` puts the TV back: it re-enables
-the packages, re-enables the stock launcher and makes it Home again.
+Semua perubahan dicatat, dan `tools/restore.sh` memulihkan TV: enable balik pakej,
+enable balik launcher stok dan jadikan ia Home.
 
 ---
 
-## Why it looks the way it does
+## Konfigurasi
 
-| Decision | Reason |
-|---|---|
-| No app-name caption | The picture is the point; app names under the tiles looked like a shop sign. |
-| No glass panel behind the tiles | The wallpaper is already the design; the tray cut a hole in it. |
-| Wallpaper changes on focus | Static wallpapers get stale on a TV that is on every evening. |
-| Dissolve, not a jump | A hard cut on a 55-inch panel is jarring; a 500 ms cross-fade is calm. |
-| Prayer box turns by itself | All five times are visible within ~21 s, without the owner pressing anything. |
-| `TIADA JADUAL` instead of hiding | A vanishing box makes the whole layout jump; a caption keeps it still. |
-| 35 % dim | 25 % was invisible from the sofa; 35 % takes the glare off without dimming the film. |
+Salin [`config.example.json`](config.example.json) → `config.json` dalam folder theme,
+tukar `"<lat>,<lon>"` kepada lokasi anda.
 
----
+| Kunci | Nilai | Makna |
+|---|---|---|
+| `prayer_zone` | `"PNG01"` | Zone JAKIM; kosong = sembunyi kotak solat |
+| `azan` | `true` | Peringatan azan |
+| `azan_seconds` | `15` | Saat bunyi azan dimainkan (`0` = penuh) |
+| `weather_location` | `"<lat>,<lon>"` | Lokasi cuaca — **jangan commit** nilai sebenar |
+| `weather_effect` | `true` | Hujan/salji atas wallpaper |
+| `columns` | `5` | App sebaris |
+| `rows_below_dock` | `0` | Baris bawah dock |
+| `dock_carousel` | `true` | Dock berulang |
+| `dock_apps` | `[ ... ]` | Pakej dalam dock |
+| `hidden_apps` | `[ ... ]` | Pakej disembunyikan |
+| `wallpaper` | `true` | Wallpaper hidup |
+| `places` | `false` | `false` = offline, guna gambar sendiri |
+| `wallpaper_seconds` | `15` | Selang tukar wallpaper |
+| `reduced_motion` | `true` | Animasi pendek, separuh titis hujan |
 
-## Reproducing it
-
-1. Android TV 8+ (this TV is 10). Enable developer options → USB debugging, connect over
-   the home network.
-2. Back up first: package list, disabled list, `getprop`, `settings list system/secure/global`,
-   which app owns Home.
-3. Build the launcher (JDK 17, Android SDK 34): `./gradlew assembleRelease`, then install
-   with the project's `build-and-install` script, which puts the stock launcher back if
-   anything fails.
-4. Push the theme: `tools/theme.sh themes/mitv-mooq0` (or `tools\theme.ps1` on Windows).
-5. Grant the overlay permission once:
-   `adb shell appops set com.gathin.tvhome SYSTEM_ALERT_WINDOW allow`.
-6. Set the calendar feed **on the TV** (never in the repo) and the wallpaper folder if
-   you use your own pictures.
-
-`config.example.json` in this folder is the theme used here, with the coordinates
-replaced by a placeholder.
+Zone JAKIM ikut negeri/daerah: contoh `PNG01` (Putrajaya), `SGR01` (Selangor),
+`WLY01` (KL), `JHR01` (Johor). Senarai penuh di laman e-Solat.
 
 ---
 
-## What is deliberately **not** in this folder
+## Nota teknikal TV
 
-* the calendar feed address (a secret iCal link),
-* the TV's coordinates (only `<lat>,<lon>` placeholder),
-* the TV's IP address and the Wi-Fi name,
-* Google account, Play Store details, playback history,
-* any screenshot of the calendar or of the app list.
+Perkara yang TV ini buat lain daripada biasa — dan perangkap yang kena elak —
+ada dalam [`docs/TV-QUIRKS.md`](docs/TV-QUIRKS.md):
 
-Screenshots are easy to add later: `adb shell screencap -p /sdcard/home.png`, pull it,
-and check it for anything personal first.
+- Panel **abaikan** `screen_brightness` (sebab Dim guna overlay, bukan kecerahan)
+- Semua `*_animation_scale` = `0.0` (sebab dissolve guna `Handler` 33 ms, bukan animator)
+- `screencap` **tangkap** overlay (berguna untuk uji), tapi tak tangkap kecerahan panel
+- Mic **tak dikongsi** dengan app lain (`RECORD_AUDIO` granted tapi tiada input device)
+- Gemini untuk TV perlu Android TV OS 14+; launcher tak boleh rampas intent `ASSIST`
+- MediaTek: guna `screencap` + `pull`, bukan `exec-out screencap`
 
 ---
 
-## Credit
+## Sejarah build
 
-Glass TV is built on [Clean Your TV](https://github.com/Gathin23/cleanyourtv) by Gathin
-(MIT). Prayer times: JAKIM e-Solat. Weather: Open-Meteo. Places pictures: Bing home page.
+Setiap build dan sebab perubahan: [`CHANGELOG.md`](CHANGELOG.md).
+
+| Versi | Saiz | Perubahan |
+|---|---|---|
+| v8 | 340,637 | Dim 35% (overlay) — **semasa** |
+| v7 | 340,633 | Dim guna overlay, bukan kecerahan |
+| v6 | 340,601 | Cubaan Dim guna `screen_brightness` (tak jalan) |
+| v5 | 339,049 | Dissolve guna `Handler`, tambah queue |
+| v4 | 338,793 | Buang tray kaca + caption nama app |
+| v3 | 338,917 | `TIADA JADUAL`, wallpaper ikut fokus |
+
+---
+
+## Privasi
+
+Repo ini **tiada**:
+
+- alamat feed kalendar (secret iCal)
+- koordinat rumah (hanya placeholder `<lat>,<lon>`)
+- IP TV atau nama Wi-Fi
+- akaun Google, maklumat Play Store, sejarah tontonan
+- screenshot yang memaparkan event kalendar atau senarai app
+
+Screenshot di sini diambil ketika kalendar kosong — yang keluar hanya `TIADA JADUAL`.
+Sebelum tambah screenshot sendiri: `adb shell screencap -p /sdcard/home.png`, tarik keluar,
+dan periksa dulu.
+
+---
+
+## Kredit & lisenn
+
+Projek asal: [Clean Your TV / Glass TV](https://github.com/Gathin23/cleanyourtv) oleh
+**Gathin** — [MIT](LICENSE). Font dalam APK: lihat [FONT-LICENSE-OFL.txt](FONT-LICENSE-OFL.txt).
+
+Waktu solat: **JAKIM e-Solat** · Cuaca: **Open-Meteo** · Gambar Places: **Bing**.
+
+Bukan projek rasmi Google/Xiaomi/JAKIM. Guna pada risiko sendiri.
