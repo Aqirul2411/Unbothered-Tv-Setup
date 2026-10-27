@@ -1,0 +1,26 @@
+{
+  "dock_apps": [
+    "org.smarttube.stable",
+    "com.fornax.vortex",
+    "com.community.mbox.tv",
+    "app.netmirror.newtv"
+  ],
+  "hidden_apps": [
+    "com.xiaomi.mitv.mediaexplorer",
+    "com.xiaomi.mitv.smartshare",
+    "com.mitv.tvhome.mitvplus",
+    "com.mitv.gallery",
+    "com.mediatek.wwtv.tvcenter"
+  ],
+  "reduced_motion": true,
+  "columns": 5,
+  "rows_below_dock": 0,
+  "dock_carousel": true,
+  "wallpaper": true,
+  "places": false,
+  "prayer_zone": "PNG01",
+  "azan": true,
+  "azan_seconds": 15,
+  "weather_location": "<lat>,<lon>",
+  "weather_effect": true
+}
