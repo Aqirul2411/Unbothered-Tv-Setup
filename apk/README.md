@@ -2,13 +2,14 @@
 
 | Fail | Saiz | Nota |
 |---|---|---|
-| `GlassTV-v9-weather-heavy.apk` | 341,037 bytes | Build terakhir (hujan lebat + `weather_preview`) |
+| `GlassTV-v10-carousel.apk` | 343,129 bytes | Build terakhir (baris carousel berulang) |
+| `GlassTV-v9-weather-heavy.apk` | 341,037 bytes | Hujan lebat + `weather_preview` |
 
 ## Pasang
 
 ```bash
 adb connect <ip-tv>:5555
-adb install -r GlassTV-v9-weather-heavy.apk
+adb install -r GlassTV-v10-carousel.apk
 adb shell appops set com.gathin.tvhome SYSTEM_ALERT_WINDOW allow
 adb shell am start -n com.gathin.tvhome/.MainActivity
 ```

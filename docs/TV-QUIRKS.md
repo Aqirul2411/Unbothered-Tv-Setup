@@ -103,13 +103,32 @@ cmd package query-activities --brief -a android.intent.action.MAIN \
 On Xiaomi the factory test app can take it. Disable the extras (for user 0) only after
 confirming Home still lands on the new launcher.
 
+## The endless row: what broke first
+
+- **Items must be one tile wide.** With `match_parent` item views the horizontal
+  `LinearLayoutManager` laid out two tiles and stopped; every item now takes the tile's width
+  in `onCreateViewHolder`.
+- **The top-bar pills were aligned to the last dock card** (`alignTopButtons`), and that card
+  no longer exists in the carousel — the pills were pushed off-screen. In the carousel the
+  alignment is skipped and the row keeps its own place.
+- **Negative margins on `gridWrap`** broke the top bar's measurement; the extra room comes
+  from the grid's own side padding instead (0 in the carousel, 56 dp from the content column).
+- **Per-tile alpha did not fade the row's ends** — a tile still looked cut off where the
+  screen clipped it. The fade is a gradient `DST_OUT` mask over the whole frame
+  (`FadeTopFrame.setSideFadeStrength`), 90 dp each side.
+- **Waiting for `SCROLL_STATE_IDLE` before focusing dropped presses** when a button was held:
+  each press cancelled the scroll the press before had started. Focus first, scroll after.
+- **A long press sent with `input swipe` puts the window in touch mode**, and the popup's rows
+  are `focusable`, not `focusableInTouchMode` — they cannot take focus, so the menu then only
+  closes through itself. Test Move with the real remote.
+
 ## Capturing screenshots for a README
 
 Things that cost time on this set:
 
 - **The Dim sheet is in the picture.** With Dim on, the brightest pixel is `166` instead of
   `255`, so every shot looks grey. Turn Dim off first — tapping the sun pill by its
-  `uiautomator` bounds is the reliable way (`resource-id` `btnDim`, here `[1493,142][1577,226]`),
+  `uiautomator` bounds is the reliable way (`resource-id` `btnDim`, here `[1516,142][1600,226]`),
   then put it back on when done.
 - **`screencap` takes ~3 s**, so timing anything is done in a burst, not one frame at a time.
 - **Lightning lasts 300 ms every 4–12 s.** Run a loop on the TV itself, not over adb:

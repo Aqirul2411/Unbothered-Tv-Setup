@@ -2,17 +2,17 @@
 
 ![Android TV](https://img.shields.io/badge/Android%20TV-10-3DDC84?logo=android&logoColor=white)
 ![Device](https://img.shields.io/badge/Xiaomi-MiTV--MOOQ0-FF6900?logo=xiaomi&logoColor=white)
-![APK](https://img.shields.io/badge/APK-341%20KB-blue)
+![APK](https://img.shields.io/badge/APK-343%20KB-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 Home screen replacement untuk **Android TV**, dibina untuk ruang tamu Malaysia:
 waktu solat yang berputar, peringatan azan, cuaca +3j/+6j, hujan atas wallpaper bila
-luar hujan, kotak jadual yang tak hilang, dan wallpaper yang bertukar dengan
-animasi dissolve.
+luar hujan, kotak jadual yang tak hilang, dan **satu baris app carousel** yang berulang
+tanpa hujung dengan wallpaper yang bertukar secara dissolve.
 
 ![Home screen](screenshots/home.jpg)
 
-<p align="center"><sub>Kotak solat · cuaca · jadual · dock apps · wallpaper penuh</sub></p>
+<p align="center"><sub>Kotak solat · cuaca · jadual · baris app carousel · wallpaper penuh</sub></p>
 
 ---
 
@@ -35,7 +35,7 @@ APK siap ada dalam folder [`apk/`](apk/):
 
 ```bash
 adb connect <ip-tv>:5555
-adb install -r apk/GlassTV-v9-weather-heavy.apk
+adb install -r apk/GlassTV-v10-carousel.apk
 adb shell appops set com.gathin.tvhome SYSTEM_ALERT_WINDOW allow   # untuk butang Dim
 adb shell am start -n com.gathin.tvhome/.MainActivity
 ```
@@ -58,6 +58,9 @@ tools\theme.ps1 themes\mitv-mooq0                        # Windows
 | Biasa | Butang Dim ON (35%) |
 |---|---|
 | ![Home](screenshots/home.jpg) | ![Dim 35%](screenshots/home-dim35.jpg) |
+
+Baris app: app yang dipilih di tengah **120 %**, jiran 105 %, 95 %, 85 % dan hujungnya
+pudar ke wallpaper — baris berulang, jadi app terakhir hanya satu langkah dari app pertama.
 
 ### Hujan atas wallpaper
 
@@ -95,7 +98,8 @@ sahaja, tiada app dibuka:
 | 🖼 | **Wallpaper dissolve** | Tukar bila fokus bergerak, fade 500/900 ms, ada queue |
 | ☀️ | **Dim 35%** | Overlay atas **semua app**, bukan Home sahaja |
 | 🧹 | **Self-clean cache** | Setiap 15 hari, automatik |
-| 🧩 | **Dock & susunan** | 5 kolum, dock carousel, apps tersembunyi tanpa uninstall |
+| 🎠 | **Carousel satu baris** | App di tengah 120 %, hujung pudar, berulang, boleh susun semula |
+| 🧩 | **Dock & susunan** | 5 kolum, `dock_apps`, apps tersembunyi tanpa uninstall |
 | 🔓 | **Debloat boleh undo** | `pm disable-user` sahaja, `tools/restore.sh` balikkan semula |
 
 ### 1. Waktu Solat — lima waktu berputar
@@ -155,6 +159,7 @@ untuk ikut cuaca sebenar; nilai lain diabaikan.
 - Baca **feed iCalendar** (alamat "secret iCal" Google Calendar, atau mana-mana `.ics`),
   gabung, papar beberapa event seterusnya dengan masa dan tajuk.
 - Bila kosong: kotak **kekal**, caption jadi **`TIADA JADUAL`** — layout tak lompat.
+- Kotak ini juga kekal dalam mod carousel: tiada baris bawah yang melaluinya.
 - 🔒 Alamat feed ialah rahsia peribadi: ia hanya ada dalam tetapan TV, **tiada** dalam repo.
 
 ### 6. Wallpaper dissolve
@@ -188,11 +193,19 @@ kekal hidup; matikan debugging → hanya pembersihan berhenti, lain-lain tak ber
 
 ### 9. Dock & susunan
 
-- `"columns": 5`, `"rows_below_dock": 0` — 5 app sebaris, tiada baris bawah dock.
-- `"dock_carousel": true` — dock satu bar panjang yang berulang.
-- `"dock_apps"` isi dock; lebih daripada muatan dock akan jadi baris grid pertama.
-- `"hidden_apps"` sembunyikan pakej tanpa uninstall.
-- Pemilik masih boleh susun app di TV (tahan OK → Move); susunan mereka mengatasi config.
+- `"columns": 5`, `"rows_below_dock": 0` — satu baris app, tiada baris bawah.
+- `"dock_carousel": true` — baris itu jadi **carousel berulang**: app yang dipilih di tengah
+  (120 %), jiran 105 % / 95 % / 85 %, app tengah naik sedikit (lengkung lembut), dan dua hujung
+  baris **pudar ke wallpaper** — bukan terpotong.
+- Baris duduk di **bawah skrin** dan tak bergerak naik-turun walaupun jam atau kotak jadual
+  bertukar tinggi.
+- Langkah sentiasa **satu slot**: app terakhir → app pertama hanya satu slide pendek, bukan
+  pusing balik seluruh baris (senarai diulang 201 kali; 0 px offset di tengah setiap langkah).
+- Tiada panel kaca dan tiada caption nama app di belakang app yang dipilih — saiznya yang
+  jadi penanda.
+- `"dock_apps"` isi susunan awal; `"hidden_apps"` sembunyikan pakej tanpa uninstall.
+- **Susun semula di TV**: tahan OK → `Move`, kemudian ◀ ▶ untuk alih app satu tempat, OK untuk
+  letak. Susunan disimpan dan mengatasi `dock_apps`. Ia berhenti di app pertama dan terakhir.
 
 ### 10. Debloat, boleh undo
 
@@ -259,7 +272,8 @@ Setiap build dan sebab perubahan: [`CHANGELOG.md`](CHANGELOG.md).
 
 | Versi | Saiz | Perubahan |
 |---|---|---|
-| v9 | 341,037 | Hujan lebat jadi babak sendiri + `weather_preview` — **semasa** |
+| v10 | 343,129 | Satu baris carousel: tengah 120 %, hujung pudar, berulang, Move jalan — **semasa** |
+| v9 | 341,037 | Hujan lebat jadi babak sendiri + `weather_preview` |
 | v8 | 340,637 | Dim 35% (overlay) |
 | v7 | 340,633 | Dim guna overlay, bukan kecerahan |
 | v6 | 340,601 | Cubaan Dim guna `screen_brightness` (tak jalan) |

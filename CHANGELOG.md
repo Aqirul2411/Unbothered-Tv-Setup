@@ -3,7 +3,34 @@
 Only the APK names and sizes are kept: the builds themselves stay on the owner's PC.
 Sizes are the release APK (`assembleRelease`, under the 400 KB the project's CI allows).
 
-## v9 — hujan lebat dibezakan · 341,037 bytes · current
+## v10 — satu baris carousel · 343,129 bytes · current
+
+* The dock's five columns became **one endless row**: the chosen app sits in the middle at
+  120 %, its neighbours 105 %, 95 % and 85 %, and the middle tile rides a small arc 14 dp
+  higher than the rest. The row is parked on the screen's bottom edge and stays there,
+  whatever the clock or the calendar above it does.
+* It never travels back: the adapter repeats the list 201 times and steps **one slot** at a
+  time, so the last app is a short slide from the first (measured: slot 1009 → 1010, centre
+  offset 0 px on every step, wrap included).
+* No glass pane and no app caption behind the chosen tile any more — the size is the
+  highlight. The row's two ends are **faded into the picture** with a gradient mask
+  (`FadeTopFrame.setSideFadeStrength`), so it never looks cut off at the screen edge.
+* Tiles are 294 px wide with a 382 px pitch on this 1080p panel: the grid's own side padding
+  drops to 0 in the carousel, because the content column already floats 56 dp.
+* The top-right pills (Inputs · Dim · Wi-Fi · Settings) stay put. The old alignment code lined
+  them up with the last dock card and pushed them off-screen once the row was one line.
+* Held keys no longer drop presses: focus lands first and the row slides after it, instead of
+  waiting for the scroll to settle (which cancelled the scroll the press before had started).
+* **Move works in the carousel too** (hold OK → Move): ◀ ▶ carries the app one place, the row
+  is rebound and shifted by one place so the carried app stays in the middle, and the order is
+  saved. It stops at the first and the last app.
+* The calendar box **stays under the weather row in the carousel**. It used to be hidden on
+  every focus move, because the old dock expected rows under it to run through it. On a day
+  with nothing left to show it reads `TIADA JADUAL`.
+* `home.jpg` and `home-dim35.jpg` retaken with the carousel.
+* `dock_carousel` is still `false` in `config.xml`: a theme turns it on.
+
+## v9 — hujan lebat dibezakan · 341,037 bytes
 
 * Rain used to have one look: codes 61–67 and 80–82 all drew the same 80 drops, so **heavy
   rain looked exactly like light rain**. Heavy (65, 67, 82) is now its own scene: 128 drops,
@@ -82,7 +109,8 @@ GlassTV-v5-dissolve-fixed.apk             339,049
 GlassTV-v6-dim25-system.apk               340,601   (dim did not work)
 GlassTV-v7-dim25-overlay.apk              340,633
 GlassTV-v8-dim35-overlay.apk              340,637
-GlassTV-v9-weather-heavy.apk              341,037   (current)
+GlassTV-v9-weather-heavy.apk              341,037
+GlassTV-v10-carousel.apk                  343,129   (current)
 ```
 
 Plus the pre-change safety net: full package list, disabled list, `getprop`, `settings list
