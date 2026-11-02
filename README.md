@@ -1,6 +1,6 @@
 # Glass TV — Malaysian Edition
 
-<p align="center"><a href="assets/donation-support.jpg"><img src="assets/donation-support.jpg" width="400" alt="Support / Donation"></a></p>
+<p align="center"><a href="assets/donation-support.jpg"><img src="assets/donation-support.jpg" width="400" alt="Buy Me a Coffee / Support"></a></p>
 
 ![Android TV](https://img.shields.io/badge/Android%20TV-10-3DDC84?logo=android&logoColor=white)
 ![Device](https://img.shields.io/badge/Xiaomi-MiTV--MOOQ0-FF6900?logo=xiaomi&logoColor=white)
@@ -313,7 +313,7 @@ Bukan projek rasmi Google/Xiaomi/JAKIM. Guna pada risiko sendiri.
 =======
 # Glass TV
 
-<p align="center"><a href="assets/donation-support.jpg"><img src="assets/donation-support.jpg" width="400" alt="Support / Donation"></a></p>
+<p align="center"><a href="assets/donation-support.jpg"><img src="assets/donation-support.jpg" width="400" alt="Buy Me a Coffee / Support"></a></p>
 
 
 **Make your Android TV or Google TV fast and ad-free again: strip out the bloat and ads, free up memory,
