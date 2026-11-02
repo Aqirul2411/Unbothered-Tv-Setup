@@ -224,6 +224,10 @@ com.mediatek.wwtv.tvcenter      (app factory / menu ujian)
 Semua perubahan dicatat, dan `tools/restore.sh` memulihkan TV: enable balik pakej,
 enable balik launcher stok dan jadikan ia Home.
 
+### 11. Double press Back untuk clear cache & memori
+
+Di **Homepage**, tekan **Back dua kali** dalam masa singkat untuk bersihkan cache aplikasi dan memori sistem. Kawalan ringkas, minimal dan kemas untuk kekalkan TV laju.
+
 ---
 
 ## Konfigurasi
