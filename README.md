@@ -33,7 +33,7 @@ tanpa hujung dengan wallpaper yang bertukar secara dissolve.
 
 ## Pemasangan pantas
 
-APK siap ada dalam folder [`apk/`](apk/):
+APK terbaru: [`apk/GlassTV-v38.apk`](apk/GlassTV-v38.apk) (rujuk juga folder [`apk/`](apk/) untuk versi lain).
 
 ```bash
 adb connect <ip-tv>:5555
